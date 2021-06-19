@@ -12,6 +12,9 @@ from pathlib import Path
 import click
 from flask import Flask, Response, jsonify, make_response, redirect, request
 
+APP_NAME = "shelter"
+APP_VERSION = "0.1.0"
+
 DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 5000
 
@@ -159,7 +162,7 @@ def _ip_throttled(remote_ip):
 
 @app.route("/")
 def index():
-    return "Welcome to shelter"
+    return f"Welcome to {APP_NAME}"
 
 
 @app.route("/healthcheck")
@@ -258,6 +261,7 @@ def short(key):
     show_default=True,
     help="port",
 )
+@click.version_option(version=APP_VERSION, prog_name=APP_NAME)
 def cli(host, port):
     """shelter server"""
     app.run(host=host, port=port)
