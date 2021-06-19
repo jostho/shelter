@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-# tested with python 3.9
-
 # url shortener server
 
 import ipaddress
