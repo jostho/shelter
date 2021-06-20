@@ -1,6 +1,7 @@
 # Shelter
 
 ![CI](https://github.com/jostho/shelter/workflows/CI/badge.svg)
+![Image](https://github.com/jostho/shelter/workflows/Image/badge.svg)
 
 This is a url shortener server written in python using [flask](https://github.com/pallets/flask).
 
