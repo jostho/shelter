@@ -18,6 +18,8 @@ APP_REPOSITORY := https://github.com/$(APP_OWNER)/$(APP_NAME)
 
 IMAGE_BINARY_PATH := /usr/local/bin/$(APP_NAME).py
 
+LOCAL_META_VERSION_PATH := $(CURDIR)/meta.version
+
 # github action sets "CI=true"
 ifeq ($(CI), true)
 IMAGE_PREFIX := ghcr.io/$(APP_OWNER)
@@ -36,6 +38,12 @@ check-optional:
 	$(BUILDAH) --version
 	$(GIT) --version
 	$(PODMAN) --version
+
+clean:
+	rm -f $(LOCAL_META_VERSION_PATH)
+
+prep-version-file:
+	echo "$(APP_NAME) $(APP_VERSION) ($(GIT_COMMIT))" > $(LOCAL_META_VERSION_PATH)
 
 build-image: BASE_IMAGE = python
 build-image:
@@ -59,8 +67,9 @@ ifeq ($(CI), true)
 endif
 
 image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
-image: build-image verify-image push-image
+image: clean prep-version-file build-image verify-image push-image
 
 .PHONY: check check-required check-optional
+.PHONY: clean prep-version-file
 .PHONY: build-image image
 .PHONY: verify-image push-image
