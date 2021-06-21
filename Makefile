@@ -16,8 +16,6 @@ APP_NAME := shelter
 APP_VERSION := $(shell $(PYTHON) -c 'import shelter; print(shelter.APP_VERSION)')
 APP_REPOSITORY := https://github.com/$(APP_OWNER)/$(APP_NAME)
 
-IMAGE_BINARY_PATH := /usr/local/bin/$(APP_NAME).py
-
 LOCAL_META_VERSION_PATH := $(CURDIR)/meta.version
 
 # github action sets "CI=true"
@@ -59,7 +57,7 @@ build-image:
 
 verify-image:
 	$(BUILDAH) images
-	$(PODMAN) run $(IMAGE_NAME) $(IMAGE_BINARY_PATH) --version
+	$(PODMAN) run $(IMAGE_NAME) /usr/local/bin/gunicorn --version
 
 push-image:
 ifeq ($(CI), true)

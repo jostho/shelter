@@ -1,9 +1,10 @@
 # python 3.9-slim
 FROM docker.io/library/python:3.9-slim
-COPY requirements.txt /usr/local/src/shelter/
-COPY shelter.py /usr/local/bin
+COPY requirements.txt shelter.py /usr/local/src/shelter/
 COPY meta.version /usr/local/etc/shelter-release
 RUN python --version >> /usr/local/etc/shelter-release
-RUN pip install -r /usr/local/src/shelter/requirements.txt
-CMD ["/usr/local/bin/shelter.py"]
+WORKDIR /usr/local/src/shelter
+RUN pip install -r requirements.txt
+CMD ["/usr/local/bin/gunicorn", "shelter:app"]
 EXPOSE 5000
+ENV GUNICORN_CMD_ARGS="-b 0.0.0.0:5000 -w 2 --access-logfile=-"
