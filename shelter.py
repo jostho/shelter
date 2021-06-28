@@ -5,6 +5,7 @@
 import ipaddress
 import os
 import pickle
+import platform
 import random
 import string
 import time
@@ -38,6 +39,10 @@ ONE_MINUTE_IN_NANOS = 60 * 1000 * 1000 * 1000
 rate_limit_ip_tracker = {}
 
 app = Flask(__name__)
+
+
+def _get_runtime_version():
+    return f"{platform.python_implementation()}/{platform.python_version()}"
 
 
 def _prepare_url_dict(input_json):
@@ -170,6 +175,12 @@ def index():
 @app.route("/healthcheck")
 def healthcheck():
     return Response(response="Ok", status=200, content_type=CONTENT_TYPE_TEXT)
+
+
+@app.route("/version")
+def version():
+    response = f"{APP_VERSION} ({_get_runtime_version()})"
+    return Response(response=response, status=200, content_type=CONTENT_TYPE_TEXT)
 
 
 @app.route("/sleep/<int:seconds>")
