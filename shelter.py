@@ -45,6 +45,10 @@ def _get_runtime_version():
     return f"{platform.python_implementation()}/{platform.python_version()}"
 
 
+def _get_version_message():
+    return f"{APP_NAME} {APP_VERSION} ({_get_runtime_version()})"
+
+
 def _prepare_url_dict(input_json):
     epoch = input_json["epoch"] if "epoch" in input_json else time.time_ns()
     return dict(url=input_json["url"], epoch=epoch, hits=0)
@@ -274,7 +278,7 @@ def short(key):
     show_default=True,
     help="port",
 )
-@click.version_option(version=APP_VERSION, prog_name=APP_NAME)
+@click.version_option(version=APP_VERSION, message=_get_version_message())
 def cli(host, port):
     """shelter server"""
     app.run(host=host, port=port)
