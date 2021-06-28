@@ -57,7 +57,7 @@ build-image:
 
 verify-image:
 	$(BUILDAH) images
-	$(PODMAN) run $(IMAGE_NAME) /usr/local/bin/gunicorn --version
+	$(PODMAN) run $(IMAGE_NAME) /usr/local/src/$(APP_NAME)/shelter.py --version
 
 push-image:
 ifeq ($(CI), true)
