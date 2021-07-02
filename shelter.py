@@ -121,6 +121,7 @@ def _get_url_for_redirect(key):
 def _status():
     db = _read()
     pid = os.getpid()
+    hostname = platform.node()
     now = time.time_ns()
     # provide only IPs active in the last 1 minute
     ip_tracker = {
@@ -128,7 +129,9 @@ def _status():
         for key, val in rate_limit_ip_tracker.items()
         if now < val["epoch"] + ONE_MINUTE_IN_NANOS
     }
-    return dict(pid=pid, total_url=len(db["urls"]), ip_tracker=ip_tracker)
+    return dict(
+        hostname=hostname, pid=pid, total_url=len(db["urls"]), ip_tracker=ip_tracker
+    )
 
 
 def _ip_local(remote_ip):
