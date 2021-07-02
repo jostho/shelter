@@ -3,6 +3,7 @@
 # url shortener server
 
 import ipaddress
+import json
 import os
 import pickle
 import platform
@@ -26,8 +27,8 @@ DEFAULT_KEY_LENGTH = 4
 CONTENT_TYPE_TEXT = "text/plain"
 CONTENT_TYPE_JSON = "application/json"
 
-# allow list for protected urls
-CIDR_ALLOW_LIST = []
+# env variable name for cidr allow list
+ENV_CIDR_ALLOW = "SHELTER_CIDR_ALLOW"
 
 # requests per minute limit for throttled urls
 LIMIT_RPM = 15
@@ -138,10 +139,29 @@ def _ip_local(remote_ip):
     return remote_ip == "127.0.0.1"
 
 
+def _cidr_allow_list():
+    allow_list = []
+    if ENV_CIDR_ALLOW in os.environ:
+        try:
+            if os.environ[ENV_CIDR_ALLOW].startswith("["):
+                # list of values - e.g. '["10.42.10.0/24", "1.1.1.1"]'
+                allow_list = json.loads(os.environ[ENV_CIDR_ALLOW])
+            else:
+                # single value - e.g. '10.42.10.0/24'
+                allow_list = [os.environ[ENV_CIDR_ALLOW]]
+            # verify what we got
+            for cidr in allow_list:
+                ipaddress.ip_network(cidr)
+        except ValueError:
+            allow_list = []
+    return allow_list
+
+
 def _ip_allowed(remote_ip):
     if _ip_local(remote_ip):
         return True
-    for cidr in CIDR_ALLOW_LIST:
+    allow_list = _cidr_allow_list()
+    for cidr in allow_list:
         if ipaddress.ip_address(remote_ip) in ipaddress.ip_network(cidr):
             return True
     # if you reach here, bad luck
