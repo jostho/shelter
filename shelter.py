@@ -27,14 +27,19 @@ DEFAULT_KEY_LENGTH = 4
 CONTENT_TYPE_TEXT = "text/plain"
 CONTENT_TYPE_JSON = "application/json"
 
-# env variable name for cidr allow list
+# env variable name for cidr allow list - default []
+# 1. list of values - e.g. '["10.42.10.0/24", "1.1.1.1"]'
+# 2. single value - e.g. '10.42.10.0/24'
 ENV_CIDR_ALLOW = "SHELTER_CIDR_ALLOW"
 
-# env variable name to control throttling
+# env variable name to control throttling - default false
+# to turn on throttling - pass in 'true' OR '1'
 ENV_THROTTLE = "SHELTER_THROTTLE"
 
-# requests per minute limit for throttled urls
-LIMIT_RPM = 15
+# env variable name to control requests per min limit
+ENV_THROTTLE_RPM_LIMIT = "SHELTER_THROTTLE_RPM_LIMIT"
+# default requests per minute limit
+DEFAULT_RPM_LIMIT = 15
 
 # number of nano seconds in a minute
 ONE_MINUTE_IN_NANOS = 60 * 1000 * 1000 * 1000
@@ -150,10 +155,10 @@ def _cidr_allow_list():
     if ENV_CIDR_ALLOW in os.environ:
         try:
             if os.environ[ENV_CIDR_ALLOW].startswith("["):
-                # list of values - e.g. '["10.42.10.0/24", "1.1.1.1"]'
+                # list of values
                 allow_list = json.loads(os.environ[ENV_CIDR_ALLOW])
             else:
-                # single value - e.g. '10.42.10.0/24'
+                # single value
                 allow_list = [os.environ[ENV_CIDR_ALLOW]]
             # verify what we got
             for cidr in allow_list:
@@ -174,8 +179,12 @@ def _ip_allowed(remote_ip):
     return False
 
 
+def _throttle_rpm_limit():
+    return int(os.getenv(ENV_THROTTLE_RPM_LIMIT, DEFAULT_RPM_LIMIT))
+
+
 def _refill_ip():
-    return dict(epoch=time.time_ns(), available=LIMIT_RPM - 1)
+    return dict(epoch=time.time_ns(), available=_throttle_rpm_limit() - 1)
 
 
 def _throttle_enabled():
@@ -220,6 +229,12 @@ def version():
     return Response(response=response, status=200, content_type=CONTENT_TYPE_TEXT)
 
 
+@app.route("/status")
+def status():
+    result = _status()
+    return jsonify(result)
+
+
 @app.route("/sleep/<int:seconds>")
 def sleep(seconds):
     max_seconds = 10
@@ -241,12 +256,6 @@ def init():
         return Response(
             response="Forbidden", status=403, content_type=CONTENT_TYPE_TEXT
         )
-
-
-@app.route("/status")
-def status():
-    result = _status()
-    return jsonify(result)
 
 
 @app.route("/api/<key>")
