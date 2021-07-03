@@ -30,6 +30,9 @@ CONTENT_TYPE_JSON = "application/json"
 # env variable name for cidr allow list
 ENV_CIDR_ALLOW = "SHELTER_CIDR_ALLOW"
 
+# env variable name to control throttling
+ENV_THROTTLE = "SHELTER_THROTTLE"
+
 # requests per minute limit for throttled urls
 LIMIT_RPM = 15
 
@@ -121,18 +124,21 @@ def _get_url_for_redirect(key):
 
 def _status():
     db = _read()
-    pid = os.getpid()
-    hostname = platform.node()
-    now = time.time_ns()
-    # provide only IPs active in the last 1 minute
-    ip_tracker = {
-        key: val
-        for key, val in rate_limit_ip_tracker.items()
-        if now < val["epoch"] + ONE_MINUTE_IN_NANOS
-    }
-    return dict(
-        hostname=hostname, pid=pid, total_url=len(db["urls"]), ip_tracker=ip_tracker
+    result = dict(
+        hostname=platform.node(),
+        pid=os.getpid(),
+        total_url=len(db["urls"]),
     )
+    if _throttle_enabled():
+        # provide only IPs active in the last 1 minute
+        now = time.time_ns()
+        ip_tracker = {
+            key: val
+            for key, val in rate_limit_ip_tracker.items()
+            if now < val["epoch"] + ONE_MINUTE_IN_NANOS
+        }
+        result["ip_tracker"] = ip_tracker
+    return result
 
 
 def _ip_local(remote_ip):
@@ -172,8 +178,12 @@ def _refill_ip():
     return dict(epoch=time.time_ns(), available=LIMIT_RPM - 1)
 
 
+def _throttle_enabled():
+    return os.getenv(ENV_THROTTLE) in ("true", "1")
+
+
 def _ip_throttled(remote_ip):
-    if _ip_local(remote_ip):
+    if not _throttle_enabled() or _ip_local(remote_ip):
         return False
     if remote_ip in rate_limit_ip_tracker:
         ip_details = rate_limit_ip_tracker[remote_ip]
@@ -235,12 +245,8 @@ def init():
 
 @app.route("/status")
 def status():
-    if _ip_allowed(request.remote_addr):
-        result = _status()
-        return jsonify(result)
-    else:
-        result = dict(message="Forbidden")
-        return make_response(jsonify(result), 403)
+    result = _status()
+    return jsonify(result)
 
 
 @app.route("/api/<key>")
