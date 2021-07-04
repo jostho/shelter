@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 
 import click
-from flask import Flask, Response, jsonify, make_response, redirect, request
+from flask import Flask, Response, jsonify, make_response, redirect, request, send_file
 
 APP_NAME = "shelter"
 APP_VERSION = "0.1.0"
@@ -40,6 +40,10 @@ ENV_THROTTLE = "SHELTER_THROTTLE"
 ENV_THROTTLE_RPM_LIMIT = "SHELTER_THROTTLE_RPM_LIMIT"
 # default requests per minute limit
 DEFAULT_RPM_LIMIT = 15
+
+# release file location
+ENV_RELEASE_FILE = "SHELTER_RELEASE"
+DEFAULT_RELEASE_FILE = "/usr/local/etc/shelter-release"
 
 # number of nano seconds in a minute
 ONE_MINUTE_IN_NANOS = 60 * 1000 * 1000 * 1000
@@ -146,6 +150,12 @@ def _status():
     return result
 
 
+def _release_file():
+    env_file = os.getenv(ENV_RELEASE_FILE, DEFAULT_RELEASE_FILE)
+    if Path(env_file).is_file():
+        return env_file
+
+
 def _ip_local(remote_ip):
     return remote_ip == "127.0.0.1"
 
@@ -227,6 +237,17 @@ def healthcheck():
 def version():
     response = f"{APP_VERSION} ({_get_runtime_version()})"
     return Response(response=response, status=200, content_type=CONTENT_TYPE_TEXT)
+
+
+@app.route("/release")
+def release():
+    release_file = _release_file()
+    if release_file:
+        return send_file(release_file, mimetype=CONTENT_TYPE_TEXT)
+    else:
+        return Response(
+            response="Not Found", status=404, content_type=CONTENT_TYPE_TEXT
+        )
 
 
 @app.route("/status")
