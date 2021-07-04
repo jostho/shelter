@@ -28,18 +28,13 @@ CONTENT_TYPE_TEXT = "text/plain"
 CONTENT_TYPE_JSON = "application/json"
 
 # env variable name for cidr allow list - default []
-# 1. list of values - e.g. '["10.42.10.0/24", "1.1.1.1"]'
+# 1. list of values (read as json) - e.g. '["10.42.10.0/24", "1.1.1.1"]'
 # 2. single value - e.g. '10.42.10.0/24'
 ENV_CIDR_ALLOW = "SHELTER_CIDR_ALLOW"
 
-# env variable name to control throttling - default false
-# to turn on throttling - pass in 'true' OR '1'
-ENV_THROTTLE = "SHELTER_THROTTLE"
-
-# env variable name to control requests per min limit
+# env variable name to control throttling
+# to turn on throttling - pass in a value > 0
 ENV_THROTTLE_RPM_LIMIT = "SHELTER_THROTTLE_RPM_LIMIT"
-# default requests per minute limit
-DEFAULT_RPM_LIMIT = 15
 
 # release file location
 ENV_RELEASE_FILE = "SHELTER_RELEASE"
@@ -190,15 +185,15 @@ def _ip_allowed(remote_ip):
 
 
 def _throttle_rpm_limit():
-    return int(os.getenv(ENV_THROTTLE_RPM_LIMIT, DEFAULT_RPM_LIMIT))
+    return int(os.getenv(ENV_THROTTLE_RPM_LIMIT, 0))
+
+
+def _throttle_enabled():
+    return _throttle_rpm_limit() > 0
 
 
 def _refill_ip():
     return dict(epoch=time.time_ns(), available=_throttle_rpm_limit() - 1)
-
-
-def _throttle_enabled():
-    return os.getenv(ENV_THROTTLE) in ("true", "1")
 
 
 def _ip_throttled(remote_ip):
