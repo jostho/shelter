@@ -36,6 +36,10 @@ ENV_CIDR_ALLOW = "SHELTER_CIDR_ALLOW"
 # to turn on throttling - pass in a value > 0
 ENV_THROTTLE_RPM_LIMIT = "SHELTER_THROTTLE_RPM_LIMIT"
 
+# env variable name to control sleep
+# to turn on sleep - pass in a value > 0
+ENV_SLEEP_MAX_SECONDS = "SHELTER_SLEEP_MAX_SECONDS"
+
 # release file location
 ENV_RELEASE_FILE = "SHELTER_RELEASE"
 DEFAULT_RELEASE_FILE = "/usr/local/etc/shelter-release"
@@ -173,6 +177,10 @@ def _cidr_allow_list():
     return allow_list
 
 
+def _sleep_max_seconds():
+    return int(os.getenv(ENV_SLEEP_MAX_SECONDS, 0))
+
+
 def _ip_allowed(remote_ip):
     if _ip_local(remote_ip):
         return True
@@ -251,10 +259,15 @@ def status():
     return jsonify(result)
 
 
-@app.route("/sleep/<int:seconds>")
+@app.route("/internal/headers")
+def headers():
+    response = f"Headers\n{request.headers}"
+    return Response(response=response, status=200, content_type=CONTENT_TYPE_TEXT)
+
+
+@app.route("/internal/sleep/<int:seconds>")
 def sleep(seconds):
-    max_seconds = 10
-    if _ip_allowed(request.remote_addr) and seconds < max_seconds:
+    if seconds < _sleep_max_seconds():
         time.sleep(seconds)
         return Response(response="Woke", status=200, content_type=CONTENT_TYPE_TEXT)
     else:
