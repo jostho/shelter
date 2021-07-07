@@ -20,12 +20,18 @@ APP_VERSION = "0.1.0"
 
 DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 5000
-
-DB_FILE = "/tmp/shelter.pickle"
 DEFAULT_KEY_LENGTH = 4
 
 CONTENT_TYPE_TEXT = "text/plain"
 CONTENT_TYPE_JSON = "application/json"
+
+# db file location
+ENV_DB_FILE = "SHELTER_DB"
+DEFAULT_DB_FILE = "/tmp/shelter.pickle"
+
+# release file location
+ENV_RELEASE_FILE = "SHELTER_RELEASE"
+DEFAULT_RELEASE_FILE = "/usr/local/etc/shelter-release"
 
 # env variable name for cidr allow list - default []
 # 1. list of values (read as json) - e.g. '["10.42.10.0/24", "1.1.1.1"]'
@@ -39,10 +45,6 @@ ENV_THROTTLE_RPM_LIMIT = "SHELTER_THROTTLE_RPM_LIMIT"
 # env variable name to control sleep
 # to turn on sleep - pass in a value > 0
 ENV_SLEEP_MAX_SECONDS = "SHELTER_SLEEP_MAX_SECONDS"
-
-# release file location
-ENV_RELEASE_FILE = "SHELTER_RELEASE"
-DEFAULT_RELEASE_FILE = "/usr/local/etc/shelter-release"
 
 # number of nano seconds in a minute
 ONE_MINUTE_IN_NANOS = 60 * 1000 * 1000 * 1000
@@ -75,16 +77,22 @@ def _init():
     _save(db)
 
 
+def _db_file():
+    return os.getenv(ENV_DB_FILE, DEFAULT_DB_FILE)
+
+
 def _read():
     db = {"urls": {}}
-    if Path(DB_FILE).is_file():
-        with open(DB_FILE, "rb") as infile:
+    db_file = _db_file()
+    if Path(db_file).is_file():
+        with open(db_file, "rb") as infile:
             db = pickle.load(infile)
     return db
 
 
 def _save(db):
-    with open(DB_FILE, "wb") as outfile:
+    db_file = _db_file()
+    with open(db_file, "wb") as outfile:
         pickle.dump(db, outfile)
 
 
