@@ -161,14 +161,15 @@ def _ip_local(remote_ip):
 
 def _cidr_allow_list():
     allow_list = []
-    if ENV_CIDR_ALLOW in os.environ:
+    env_cidr_allow = os.getenv(ENV_CIDR_ALLOW)
+    if env_cidr_allow:
         try:
-            if os.environ[ENV_CIDR_ALLOW].startswith("["):
-                # list of values
-                allow_list = json.loads(os.environ[ENV_CIDR_ALLOW])
+            if env_cidr_allow.startswith("["):
+                # list of values, read as json
+                allow_list = json.loads(env_cidr_allow)
             else:
-                # single value
-                allow_list = [os.environ[ENV_CIDR_ALLOW]]
+                # single value, used as-is
+                allow_list = [env_cidr_allow]
             # verify what we got
             for cidr in allow_list:
                 ipaddress.ip_network(cidr)
