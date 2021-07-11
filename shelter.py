@@ -138,7 +138,7 @@ def _get_url_for_redirect(key):
     return url
 
 
-def _status():
+def _whoami():
     db = _read()
     result = dict(
         hostname=platform.node(),
@@ -262,9 +262,9 @@ def release():
         )
 
 
-@app.route("/status")
-def status():
-    result = _status()
+@app.route("/whoami")
+def whoami():
+    result = _whoami()
     return jsonify(result)
 
 
@@ -272,6 +272,15 @@ def status():
 def headers():
     response = f"Headers\n{request.headers}"
     return Response(response=response, status=200, content_type=CONTENT_TYPE_TEXT)
+
+
+@app.route("/internal/status/<int:status_code>")
+def status(status_code):
+    response_code = status_code if status_code > 200 and status_code < 600 else 200
+    response = f"Status: {response_code}"
+    return Response(
+        response=response, status=response_code, content_type=CONTENT_TYPE_TEXT
+    )
 
 
 @app.route("/internal/sleep/<int:seconds>")
