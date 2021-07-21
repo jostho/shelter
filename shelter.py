@@ -14,6 +14,8 @@ from pathlib import Path
 
 import click
 from flask import Flask, Response, jsonify, make_response, redirect, request, send_file
+from prometheus_client import make_wsgi_app
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 APP_NAME = "shelter"
 APP_VERSION = "0.1.0"
@@ -52,7 +54,10 @@ ONE_MINUTE_IN_NANOS = 60 * 1000 * 1000 * 1000
 # track ips for throttled urls
 rate_limit_ip_tracker = {}
 
+# flask app
 app = Flask(__name__)
+# add prometheus wsgi middleware to flask
+app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {"/metrics": make_wsgi_app()})
 
 
 def _get_runtime_version():
