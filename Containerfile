@@ -7,5 +7,6 @@ WORKDIR /usr/local/src/shelter
 RUN pip install -r requirements.txt
 CMD ["/usr/local/bin/gunicorn", "shelter:app"]
 EXPOSE 5000
-ENV GUNICORN_CMD_ARGS="-b 0.0.0.0:5000 -w 2 --access-logfile=- \
+ENV GUNICORN_CMD_ARGS="--bind 0.0.0.0:5000 \
+ --access-logfile=- \
  --access-logformat='%(h)s %(l)s %(u)s %(t)s \"%(r)s\" %(s)s %(b)s \"%(f)s\" \"%(a)s\" \"%({Host}i)s\" %(p)s %(L)s'"
