@@ -113,7 +113,7 @@ def _save(db):
 def _add_url(input_json):
     db = _read()
     item = None
-    if "url" in input_json:
+    if "url" in input_json and input_json["url"]:
         s_key = _get_random_key()
         if s_key not in db["urls"]:
             s_val = _prepare_url_dict(input_json)
@@ -337,7 +337,7 @@ def api_with_key(key):
 def api():
     if not _ip_throttled(request.remote_addr):
         if request.method == "POST":
-            if request.get_json():
+            if request.get_json(silent=True):
                 result = _add_url(request.get_json())
                 if "message" in result:
                     counter_api_post_failures.inc()
