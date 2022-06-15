@@ -1,5 +1,5 @@
-# python 3.9-slim
-FROM docker.io/library/python:3.9-slim
+# python 3.10-slim
+FROM docker.io/library/python:3.10-slim
 COPY requirements.txt shelter.py /usr/local/src/shelter/
 COPY meta.version /usr/local/etc/shelter-release
 RUN python --version >> /usr/local/etc/shelter-release
