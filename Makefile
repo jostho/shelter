@@ -67,7 +67,10 @@ endif
 image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
 image: clean prep-version-file build-image verify-image push-image
 
+run-image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
+run-image: verify-image
+
 .PHONY: check check-required check-optional
 .PHONY: clean prep-version-file
 .PHONY: build-image image
-.PHONY: verify-image push-image
+.PHONY: verify-image push-image run-image
