@@ -14,7 +14,7 @@ GIT_VERSION := $(GIT_BRANCH)/$(GIT_COMMIT)
 
 APP_OWNER := jostho
 APP_NAME := shelter
-APP_VERSION := $(shell $(PYTHON) -c 'import shelter; print(shelter.APP_VERSION)')
+APP_VERSION := 0.1.0
 APP_REPOSITORY := https://github.com/$(APP_OWNER)/$(APP_NAME)
 
 LOCAL_META_VERSION_PATH := $(CURDIR)/meta.version
