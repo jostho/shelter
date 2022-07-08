@@ -4,6 +4,7 @@ PYTHON := python3
 BUILDAH := buildah
 GIT := git
 PODMAN := podman
+CURL := curl
 
 ARCH = $(shell arch)
 
@@ -17,6 +18,9 @@ APP_VERSION := $(shell $(PYTHON) -c 'import shelter; print(shelter.APP_VERSION)'
 APP_REPOSITORY := https://github.com/$(APP_OWNER)/$(APP_NAME)
 
 LOCAL_META_VERSION_PATH := $(CURDIR)/meta.version
+
+PORT := 5000
+RELEASE_URL := http://localhost:$(PORT)/release
 
 # github action sets "CI=true"
 ifeq ($(CI), true)
@@ -36,6 +40,7 @@ check-optional:
 	$(BUILDAH) --version
 	$(GIT) --version
 	$(PODMAN) --version
+	$(CURL) --version | head -1
 
 clean:
 	rm -f $(LOCAL_META_VERSION_PATH)
@@ -59,6 +64,12 @@ verify-image:
 	$(BUILDAH) images
 	$(PODMAN) run $(IMAGE_NAME) /usr/local/src/$(APP_NAME)/shelter.py --version
 
+run-container: verify-image
+	$(PODMAN) run -d -p $(PORT):$(PORT) $(IMAGE_NAME)
+	sleep 10
+	$(CURL) -fsS -i -m 10 $(RELEASE_URL)
+	$(PODMAN) stop -l
+
 push-image:
 ifeq ($(CI), true)
 	$(BUILDAH) push $(IMAGE_NAME)
@@ -68,9 +79,10 @@ image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
 image: clean prep-version-file build-image verify-image push-image
 
 run-image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
-run-image: verify-image
+run-image: run-container
 
 .PHONY: check check-required check-optional
 .PHONY: clean prep-version-file
 .PHONY: build-image image
-.PHONY: verify-image push-image run-image
+.PHONY: verify-image push-image
+.PHONY: run-image run-container
