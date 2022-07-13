@@ -20,7 +20,6 @@ APP_REPOSITORY := https://github.com/$(APP_OWNER)/$(APP_NAME)
 LOCAL_META_VERSION_PATH := $(CURDIR)/meta.version
 
 PORT := 5000
-RELEASE_URL := http://localhost:$(PORT)/release
 
 # github action sets "CI=true"
 ifeq ($(CI), true)
@@ -64,10 +63,11 @@ verify-image:
 	$(BUILDAH) images
 	$(PODMAN) run $(IMAGE_NAME) /usr/local/src/$(APP_NAME)/shelter.py --version
 
+run-container: VERIFY_URL = http://localhost:$(PORT)/{healthcheck,release}
 run-container: verify-image
 	$(PODMAN) run -d -p $(PORT):$(PORT) $(IMAGE_NAME)
 	sleep 10
-	$(CURL) -fsS -i -m 10 $(RELEASE_URL)
+	$(CURL) -fsS -i -m 10 -w "\n--- %{url_effective} \n" $(VERIFY_URL)
 	$(PODMAN) stop -l
 
 push-image:
