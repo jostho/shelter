@@ -59,9 +59,25 @@ build-image:
 		--label org.opencontainers.image.source=$(APP_REPOSITORY) \
 		-f Containerfile .
 
+build-multiarch-image: BASE_IMAGE = python
+build-multiarch-image:
+	$(BUILDAH) bud \
+		--platform=linux/arm64/v8,linux/amd64 \
+		--manifest $(IMAGE_NAME) \
+		--label app-name=$(APP_NAME) \
+		--label app-version=$(APP_VERSION) \
+		--label app-git-version=$(GIT_VERSION) \
+		--label app-base-image=$(BASE_IMAGE) \
+		--label org.opencontainers.image.source=$(APP_REPOSITORY) \
+		-f Containerfile .
+
 verify-image:
 	$(BUILDAH) images
 	$(PODMAN) run $(IMAGE_NAME) /usr/local/src/$(APP_NAME)/shelter.py --version
+
+verify-multiarch-image:
+	$(BUILDAH) images
+	$(BUILDAH) manifest inspect $(IMAGE_NAME)
 
 run-container: VERIFY_URL = http://localhost:$(PORT)/{healthcheck,release}
 run-container: verify-image
@@ -70,7 +86,7 @@ run-container: verify-image
 	$(CURL) -fsS -i -m 10 -w "\n--- %{url_effective} \n" $(VERIFY_URL)
 	$(PODMAN) stop -l
 
-push-image:
+push-multiarch-image:
 ifeq ($(CI), true)
 	$(BUILDAH) push $(IMAGE_NAME)
 endif
@@ -81,8 +97,11 @@ image: clean prep-version-file build-image verify-image push-image
 run-image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
 run-image: run-container
 
+multiarch-image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
+multiarch-image: clean prep-version-file build-multiarch-image verify-multiarch-image push-multiarch-image
+
 .PHONY: check check-required check-optional
 .PHONY: clean prep-version-file
-.PHONY: build-image image
-.PHONY: verify-image push-image
+.PHONY: build-image verify-image image
+.PHONY: build-multiarch-image verify-multiarch-image push-multiarch-image multiarch-image
 .PHONY: run-image run-container

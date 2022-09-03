@@ -32,10 +32,38 @@ jobs:
       - name: Build image
         run: make image
 
+  multiarch-image:
+
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install qemu-user-static
+        run: |
+          sudo apt-get update
+          sudo apt-get install qemu-user-static
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Print python version
+        run: python --version
+      - name: Install python dependencies
+        run: pip install -r requirements.txt
+      - name: Print make version
+        run: make --version
+      - name: Run make check
+        run: make check
+      - name: Login to ghcr
+        run: buildah login -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
+      - name: Build multiarch-image
+        run: make multiarch-image
+
   run-image:
 
     runs-on: ubuntu-22.04
-    needs: image
+    needs: multiarch-image
 
     steps:
       - name: Checkout code
