@@ -92,7 +92,7 @@ ifeq ($(CI), true)
 endif
 
 image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
-image: clean prep-version-file build-image verify-image push-image
+image: clean prep-version-file build-image verify-image
 
 run-image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
 run-image: run-container
