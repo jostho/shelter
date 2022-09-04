@@ -62,8 +62,8 @@ build-image:
 build-multiarch-image: BASE_IMAGE = python
 build-multiarch-image:
 	$(BUILDAH) bud \
-		--platform=linux/arm64/v8,linux/amd64 \
 		--manifest $(IMAGE_NAME) \
+		--platform=linux/amd64,linux/arm64 \
 		--label app-name=$(APP_NAME) \
 		--label app-version=$(APP_VERSION) \
 		--label app-git-version=$(GIT_VERSION) \
@@ -88,7 +88,7 @@ run-container: verify-image
 
 push-multiarch-image:
 ifeq ($(CI), true)
-	$(BUILDAH) push $(IMAGE_NAME)
+	$(BUILDAH) push --all $(IMAGE_NAME)
 endif
 
 image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
