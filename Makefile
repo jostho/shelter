@@ -19,6 +19,7 @@ APP_REPOSITORY := https://github.com/$(APP_OWNER)/$(APP_NAME)
 
 LOCAL_META_VERSION_PATH := $(CURDIR)/meta.version
 
+BASE_IMAGE=python-slim
 PORT := 5000
 
 # github action sets "CI=true"
@@ -47,7 +48,6 @@ clean:
 prep-version-file:
 	echo "$(APP_NAME) $(APP_VERSION) ($(GIT_COMMIT))" > $(LOCAL_META_VERSION_PATH)
 
-build-image: BASE_IMAGE = python
 build-image:
 	$(BUILDAH) bud \
 		--tag $(IMAGE_NAME) \
@@ -59,7 +59,6 @@ build-image:
 		--label org.opencontainers.image.source=$(APP_REPOSITORY) \
 		-f Containerfile .
 
-build-multiarch-image: BASE_IMAGE = python
 build-multiarch-image:
 	$(BUILDAH) bud \
 		--manifest $(IMAGE_NAME) \
@@ -67,6 +66,7 @@ build-multiarch-image:
 		--label app-name=$(APP_NAME) \
 		--label app-version=$(APP_VERSION) \
 		--label app-git-version=$(GIT_VERSION) \
+		--label app-arch=multiarch \
 		--label app-base-image=$(BASE_IMAGE) \
 		--label org.opencontainers.image.source=$(APP_REPOSITORY) \
 		-f Containerfile .
@@ -79,6 +79,16 @@ verify-multiarch-image:
 	$(BUILDAH) images
 	$(BUILDAH) manifest inspect $(IMAGE_NAME)
 
+push-image:
+ifeq ($(CI), true)
+	$(BUILDAH) push $(IMAGE_NAME)
+endif
+
+push-multiarch-image:
+ifeq ($(CI), true)
+	$(BUILDAH) manifest push --all $(IMAGE_NAME) docker://$(IMAGE_NAME)
+endif
+
 run-container: VERIFY_URL = http://localhost:$(PORT)/{healthcheck,release}
 run-container: verify-image
 	$(PODMAN) run -d -p $(PORT):$(PORT) $(IMAGE_NAME)
@@ -86,22 +96,17 @@ run-container: verify-image
 	$(CURL) -fsS -i -m 10 -w "\n--- %{url_effective} \n" $(VERIFY_URL)
 	$(PODMAN) stop -l
 
-push-multiarch-image:
-ifeq ($(CI), true)
-	$(BUILDAH) push --all $(IMAGE_NAME)
-endif
-
 image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
 image: clean prep-version-file build-image verify-image
-
-run-image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
-run-image: run-container
 
 multiarch-image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
 multiarch-image: clean prep-version-file build-multiarch-image verify-multiarch-image push-multiarch-image
 
+run-image: IMAGE_NAME = $(IMAGE_PREFIX)/$(APP_NAME):$(IMAGE_VERSION)
+run-image: run-container
+
 .PHONY: check check-required check-optional
 .PHONY: clean prep-version-file
-.PHONY: build-image verify-image image
+.PHONY: build-image verify-image push-image image
 .PHONY: build-multiarch-image verify-multiarch-image push-multiarch-image multiarch-image
 .PHONY: run-image run-container

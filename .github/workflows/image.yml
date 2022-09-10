@@ -27,8 +27,6 @@ jobs:
         run: make --version
       - name: Run make check
         run: make check
-      - name: Login to ghcr
-        run: buildah login -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
       - name: Build image
         run: make image
 
