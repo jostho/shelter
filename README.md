@@ -7,9 +7,9 @@ This is a url shortener server written in python using [flask](https://github.co
 
 ## Environment
 
-* fedora 36
-* python 3.10
-* make 4.3
+* fedora 38
+* python 3.11
+* make 4.4
 
 ## Setup
 
