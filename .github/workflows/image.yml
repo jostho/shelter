@@ -21,8 +21,6 @@ jobs:
           python-version: '3.12'
       - name: Print python version
         run: python --version
-      - name: Install python dependencies
-        run: pip install -r requirements.txt
       - name: Print make version
         run: make --version
       - name: Run make check
@@ -47,8 +45,6 @@ jobs:
           python-version: '3.12'
       - name: Print python version
         run: python --version
-      - name: Install python dependencies
-        run: pip install -r requirements.txt
       - name: Print make version
         run: make --version
       - name: Run make check
