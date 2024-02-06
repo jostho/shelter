@@ -20,11 +20,13 @@ jobs:
           python-version: '3.12'
       - name: Print python version
         run: python --version
+      - name: Install pip-tools
+        run: pip install pip-tools
       - name: Install python dependencies
-        run: pip install -r requirements.txt
-      - name: Install lint
-        run: pip install ruff black
-      - name: Run ruff
+        run: pip-compile -o requirements.txt requirements/* && pip-sync
+      - name: Run ruff version
+        run: ruff version
+      - name: Run ruff check
         run: ruff check .
-      - name: Run black
-        run: black --check .
+      - name: Run ruff format
+        run: ruff format --check .
