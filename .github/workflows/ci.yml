@@ -22,8 +22,12 @@ jobs:
         run: python --version
       - name: Install pip-tools
         run: pip install pip-tools
-      - name: Install python dependencies
-        run: pip-compile -o requirements-dev.txt requirements/* && pip-sync -q requirements-dev.txt
+      - name: Install latest dependencies
+        run: >
+          pip-compile -o requirements-dev.txt requirements/* &&
+          pip-sync -q requirements-dev.txt
+      - name: Run shelter version
+        run: ./shelter.py --version
       - name: Run ruff version
         run: ruff version
       - name: Run ruff check
