@@ -24,10 +24,9 @@ jobs:
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
       - name: Run uv version
         run: uv --version
-      - name: Prepare virtual environment
-        run: >
-          uv venv &&
-          source .venv/bin/activate
+      - name: Hack uv to use system Python as default venv
+        # see https://github.com/astral-sh/uv/issues/1396
+        run: echo "VIRTUAL_ENV=${Python_ROOT_DIR}" >> "$GITHUB_ENV"
       - name: Install latest dependencies
         run: >
           uv pip compile -o requirements-dev.txt requirements/* &&
