@@ -20,12 +20,18 @@ jobs:
           python-version: '3.12'
       - name: Print python version
         run: python --version
-      - name: Install pip-tools
-        run: pip install pip-tools
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      - name: Run uv version
+        run: uv --version
+      - name: Prepare virtual environment
+        run: >
+          uv venv &&
+          source .venv/bin/activate
       - name: Install latest dependencies
         run: >
-          pip-compile -o requirements-dev.txt requirements/* &&
-          pip-sync -q requirements-dev.txt
+          uv pip compile -o requirements-dev.txt requirements/* &&
+          uv pip sync requirements-dev.txt
       - name: Run shelter version
         run: ./shelter.py --version
       - name: Run ruff version
