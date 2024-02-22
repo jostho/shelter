@@ -14,7 +14,7 @@ from pathlib import Path
 
 import click
 from flask import Flask, Response, jsonify, make_response, redirect, request, send_file
-from prometheus_client import make_wsgi_app, Counter
+from prometheus_client import Counter, disable_created_metrics, make_wsgi_app
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 APP_NAME = "shelter"
@@ -56,8 +56,12 @@ rate_limit_ip_tracker = {}
 
 # flask app
 app = Flask(__name__)
+
 # add prometheus wsgi middleware to flask
 app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {"/metrics": make_wsgi_app()})
+
+# disable '_created' timestamp metric
+disable_created_metrics()
 
 # failure counters
 counter_s_get_failures = Counter("shelter_s_get_failures", "shelter short url failures")
