@@ -63,14 +63,8 @@ app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {"/metrics": make_wsgi_app()})
 # disable '_created' timestamp metric
 disable_created_metrics()
 
-# failure counters
-counter_s_get_failures = Counter("shelter_s_get_failures", "shelter short url failures")
-counter_api_get_failures = Counter(
-    "shelter_api_get_failures", "shelter api get failures"
-)
-counter_api_post_failures = Counter(
-    "shelter_api_post_failures", "shelter api post failures"
-)
+# failure counter
+failure_counter = Counter("shelter_failures", "shelter failures", ["operation"])
 
 
 def _get_runtime_version():
@@ -328,7 +322,7 @@ def api_with_key(key):
     if not _ip_throttled(request.remote_addr):
         result = _get_url_item_for_api(key)
         if "message" in result:
-            counter_api_get_failures.inc()
+            failure_counter.labels("read").inc()
             return make_response(jsonify(result), 400)
         else:
             return jsonify(result)
@@ -344,11 +338,11 @@ def api():
             if request.get_json(silent=True):
                 result = _add_url(request.get_json())
                 if "message" in result:
-                    counter_api_post_failures.inc()
+                    failure_counter.labels("create").inc()
                     return make_response(jsonify(result), 400)
             else:
                 result = dict(message="request is not json")
-                counter_api_post_failures.inc()
+                failure_counter.labels("create").inc()
                 return make_response(jsonify(result), 400)
         else:
             result = _get_urls()
@@ -364,7 +358,7 @@ def short(key):
     if url:
         return redirect(url)
     else:
-        counter_s_get_failures.inc()
+        failure_counter.labels("short").inc()
         return Response(
             response="Not Found", status=404, content_type=CONTENT_TYPE_TEXT
         )
