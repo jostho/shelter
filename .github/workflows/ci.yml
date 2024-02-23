@@ -22,7 +22,7 @@ jobs:
         run: python --version
       - name: Install uv
         run: >
-          curl -LsSf https://astral.sh/uv/install.sh | sh -q &&
+          curl -LsSf https://astral.sh/uv/install.sh | sh -s -- -q &&
           uv --version
       - name: Hack uv to point venv to Python from setup-python action
         # see https://github.com/astral-sh/uv/issues/1396
