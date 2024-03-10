@@ -27,7 +27,7 @@ jobs:
           uv --version
       - name: Install latest dependencies
         run: >
-          uv pip compile -o requirements-dev.txt requirements/* &&
+          uv pip compile -q -o requirements-dev.txt requirements/* &&
           uv pip sync --system requirements-dev.txt
       - name: Run shelter version
         run: ./shelter.py --version
