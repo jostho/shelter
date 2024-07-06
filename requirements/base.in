@@ -1,5 +1,4 @@
 click
-Flask
+flask
 prometheus-client
-Werkzeug
 gunicorn
