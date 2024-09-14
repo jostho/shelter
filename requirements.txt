@@ -8,7 +8,7 @@ click==8.1.7
     #   flask
 flask==3.0.3
     # via -r requirements/base.in
-gunicorn==22.0.0
+gunicorn==23.0.0
     # via -r requirements/base.in
 itsdangerous==2.2.0
     # via flask
@@ -22,5 +22,5 @@ packaging==24.1
     # via gunicorn
 prometheus-client==0.20.0
     # via -r requirements/base.in
-werkzeug==3.0.3
+werkzeug==3.0.4
     # via flask
