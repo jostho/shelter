@@ -22,13 +22,11 @@ jobs:
       - name: Print python version
         run: python --version
       - name: Install uv
-        run: >
-          curl -LsSf https://astral.sh/uv/install.sh | sh -s -- -q &&
-          uv --version
+        uses: astral-sh/setup-uv@v3
       - name: Install latest dependencies
         run: >
           uv pip compile -q -o requirements-dev.txt requirements/* &&
-          uv pip sync --system requirements-dev.txt
+          uv pip sync requirements-dev.txt
       - name: Run shelter version
         run: ./shelter.py --version
       - name: Run ruff version
