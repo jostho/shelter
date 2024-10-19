@@ -26,7 +26,7 @@ jobs:
       - name: Install latest dependencies
         run: >
           uv pip compile -q -o requirements-dev.txt requirements/* &&
-          uv pip sync requirements-dev.txt
+          uv pip sync --system requirements-dev.txt
       - name: Run shelter version
         run: ./shelter.py --version
       - name: Run ruff version
